@@ -13,13 +13,12 @@ Finalmente, el servidor devuelve respuestas en formatos JSON.
 
 El proyecto sigue el patrón Application Factory, lo que permite una mejor organización y escalibidad del código.
 
-TECNOLOGIAS UTILIZADOS
+TECNOLOGIAS UTILIZADAS
 
 -Python 
 -Flask
 -SQLAlchemy
 -SQLite
--JSON //Quitar
 
 ENDPOINTS
 
@@ -33,7 +32,7 @@ INSTALACIÓN Y USO
 
 1. Clonar repositorio:
 
-git clone https://github.com/Kayzza/flask-tasks-api.git 
+git clone https://github.com/Esteban-Alexander-C/flask-tasks-api.git 
 cd flask-tasks-api
 
 2. Crear entorno virtual:
