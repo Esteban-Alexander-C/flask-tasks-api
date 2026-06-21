@@ -1,7 +1,38 @@
+from dbm import error
+
 from flask import jsonify, request
 from .models import Task
 from . import db
 #Simulamos base de datos en memoria 
+
+def validate_create_task(data):
+    if not data or "title" not in data:
+        return "Falta el título"
+
+    if not data["title"].strip():
+        return "Título vacío"
+
+    if len(data["title"]) > 100:
+        return "Título demasiado largo"
+
+    if "done" in data and not isinstance(data["done"], bool):
+        return "El campo done debe ser booleano"
+
+    return None
+
+
+def validate_update_task(data):
+    if "title" in data:
+        if not data["title"].strip():
+            return "Título vacío"
+
+        if len(data["title"]) > 100:
+            return "Título demasiado largo"
+
+    if "done" in data and not isinstance(data["done"], bool):
+        return "El campo done debe ser booleano"
+
+    return None
 
 
 def register_routes(app):
@@ -17,6 +48,7 @@ def register_routes(app):
 
         return jsonify([task.to_dict() for task in tasks])
     
+    
     #Para recoger una tarea con un id especifico
     @app.route("/tasks/<int:task_id>")
     def get_task(task_id):
@@ -31,12 +63,15 @@ def register_routes(app):
     def create_task():
         data = request.get_json()
 
-        if not data or "title" not in data:
-            return {"error":"Falta el título"}, 400
+        #Validación de los datos de entrada para el POST
+        error = validate_create_task(data)
+        if error:
+            return {"error": error}, 400
         
         new_tasks = Task(
             title=data["title"],
-            done=False
+            done=False,
+            description=data.get("description")
         )
 
 
@@ -48,9 +83,9 @@ def register_routes(app):
     #Ruta DELETE para borrar tareas
     @app.route("/tasks/<int:task_id>", methods=["DELETE"])
     def delete_task(task_id):
-
+        #Comprobamos si la tarea existe antes de intentar borrarla
         task = Task.query.get(task_id)
-
+        
         if not task:
             return {"error": "Tarea no encontrada"},404
         
@@ -63,18 +98,28 @@ def register_routes(app):
     @app.route("/tasks/<int:task_id>", methods=["PUT"])
     def update_task(task_id):
 
+        #Comprobamos si la tarea existe antes de intentar actualizarla
         task = Task.query.get(task_id)
-
         if not task:
-                return {"error": "Tarea no encontrada"}, 404
+            return {"error": "Tarea no encontrada"}, 404
+
         
         data = request.get_json()
+
+        #Validación de los datos de entrada para el UPDATE
+        error = validate_update_task(data)
+        if error:
+            return {"error": error}, 400
+
+        if "done" in data and not isinstance(data["done"], bool):
+            return {"error": "El campo 'done' debe ser un valor booleano"}, 400
 
         if not data:
             return {"error": "No JSON provided"},400
         
         task.title = data.get("title", task.title)
         task.done = data.get("done", task.done)
+        task.description = data.get("description", task.description)
 
         db.session.commit()
 

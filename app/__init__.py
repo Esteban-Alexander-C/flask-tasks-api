@@ -23,6 +23,9 @@ def create_app(): #Creamos una función
 
     db.init_app(app)
 
+    with app.app_context():
+        db.create_all()
+        
     register_routes(app)
     
     return app #Devolvemos la aplicacion app que hemos creado arriba
