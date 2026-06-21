@@ -56,9 +56,26 @@ def register_routes(app):
     @app.route("/tasks", methods= ["GET"])
     def get_tasks():
 
-        tasks = Task.query.all()
+        query = Task.query
 
-        return jsonify([task.to_dict() for task in tasks])
+        # Filtro por estado (done)
+        done = request.args.get("done")
+        if done is not None:
+            if done.lower() == "true":
+                query = query.filter_by(done=True)
+            elif done.lower() == "false":
+                query = query.filter_by(done=False)
+            else:
+                return {"error": "El parámetro 'done' debe ser 'true' o 'false'"}, 400
+            
+        # Filtro por título (búsqueda parcial)
+        title = request.args.get("title")
+        if title:
+            query = query.filter(Task.title.contains(title))
+
+        tasks = query.all()
+
+        return [task.to_dict() for task in tasks]
     
     
     #Ruta GET para obtener una tarea por su ID
