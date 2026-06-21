@@ -73,9 +73,36 @@ def register_routes(app):
         if title:
             query = query.filter(Task.title.contains(title))
 
-        tasks = query.all()
+        #Ordenación
+        sort = request.args.get("sort")
 
-        return [task.to_dict() for task in tasks]
+        if sort:
+            if sort.startswith("-"):
+                field = sort[1:]
+                if field == "title":
+                    query = query.order_by(Task.title.desc())
+                elif field == "id":
+                    query = query.order_by(Task.id.desc())
+            else:
+                if sort == "title":
+                    query = query.order_by(Task.title.asc())
+                elif sort == "id":
+                    query = query.order_by(Task.id.asc())
+
+        #Paginación
+        page = request.args.get("page", 1, type=int)
+        per_page = request.args.get("per_page", 5, type=int)
+        
+        paginated_tasks = query.paginate(page=page, per_page=per_page, error_out=False)
+
+        return {
+            "total": paginated_tasks.total,
+            "page": paginated_tasks.pages,
+            "current_page": page,
+            "tasks": [task.to_dict() for task in paginated_tasks.items]
+        }
+
+
     
     
     #Ruta GET para obtener una tarea por su ID
