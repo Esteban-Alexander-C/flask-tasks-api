@@ -1,9 +1,16 @@
+# =================================
+#IMPORTS
+# =================================
 from dbm import error
-
 from flask import jsonify, request
 from .models import Task
 from . import db
-#Simulamos base de datos en memoria 
+# =================================
+
+
+# =================================
+#VALIDACIONES
+# =================================
 
 def validate_create_task(data):
     if not data or "title" not in data:
@@ -34,13 +41,18 @@ def validate_update_task(data):
 
     return None
 
+# =================================
+#ENDPOINTS
+# =================================
 
 def register_routes(app):
 
+    #Ruta de prueba para comprobar que el servidor funciona
     @app.route("/")
     def home():
         return "Servidor funcionando"
 
+    #Ruta GET para obtener todas las tareas
     @app.route("/tasks", methods= ["GET"])
     def get_tasks():
 
@@ -49,7 +61,7 @@ def register_routes(app):
         return jsonify([task.to_dict() for task in tasks])
     
     
-    #Para recoger una tarea con un id especifico
+    #Ruta GET para obtener una tarea por su ID
     @app.route("/tasks/<int:task_id>")
     def get_task(task_id):
 
@@ -58,7 +70,8 @@ def register_routes(app):
         if not task:
              return {"error": "Tarea no encontrada"}, 404
         return jsonify(task.to_dict())
-    #Ruta POST para añadir tareas
+    
+    #Ruta POST para crear una nueva tarea
     @app.route("/tasks", methods=["POST"])
     def create_task():
         data = request.get_json()
@@ -80,7 +93,7 @@ def register_routes(app):
         
         return jsonify(new_tasks.to_dict()), 201
     
-    #Ruta DELETE para borrar tareas
+    #Ruta DELETE para eliminar una tarea por su ID
     @app.route("/tasks/<int:task_id>", methods=["DELETE"])
     def delete_task(task_id):
         #Comprobamos si la tarea existe antes de intentar borrarla
@@ -94,7 +107,7 @@ def register_routes(app):
             
         return {"message": "Tarea eliminada"}
     
-    #Ruta PUT para actualizar tareas
+    #Ruta PUT para actualizar una tarea por su ID
     @app.route("/tasks/<int:task_id>", methods=["PUT"])
     def update_task(task_id):
 
