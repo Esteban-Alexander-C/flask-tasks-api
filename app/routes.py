@@ -5,41 +5,8 @@ from dbm import error
 from flask import jsonify, request
 from .models import Task
 from . import db
-# =================================
-
-
-# =================================
-#VALIDACIONES
-# =================================
-
-def validate_create_task(data):
-    if not data or "title" not in data:
-        return "Falta el título"
-
-    if not data["title"].strip():
-        return "Título vacío"
-
-    if len(data["title"]) > 100:
-        return "Título demasiado largo"
-
-    if "done" in data and not isinstance(data["done"], bool):
-        return "El campo done debe ser booleano"
-
-    return None
-
-
-def validate_update_task(data):
-    if "title" in data:
-        if not data["title"].strip():
-            return "Título vacío"
-
-        if len(data["title"]) > 100:
-            return "Título demasiado largo"
-
-    if "done" in data and not isinstance(data["done"], bool):
-        return "El campo done debe ser booleano"
-
-    return None
+from .services import create_task_service, get_tasks_service, update_task_service, delete_task_service
+from .validators import validate_create_task, validate_update_task, validate_delete_task
 
 # =================================
 #ENDPOINTS
@@ -56,55 +23,33 @@ def register_routes(app):
     @app.route("/tasks", methods= ["GET"])
     def get_tasks():
 
-        query = Task.query
-
-        # Filtro por estado (done)
+        # -----LEER PARÁMETROS -----
         done = request.args.get("done")
+        title = request.args.get("title")
+        sort = request.args.get("sort")
+        page = request.args.get("page", 1, type=int)
+        per_page = request.args.get("per_page", 5, type=int)
+
+        # ----- VALIDACIÓN -----
         if done is not None:
             if done.lower() == "true":
-                query = query.filter_by(done=True)
+                done = True
             elif done.lower() == "false":
-                query = query.filter_by(done=False)
+                done = False
             else:
                 return {"error": "El parámetro 'done' debe ser 'true' o 'false'"}, 400
             
-        # Filtro por título (búsqueda parcial)
-        title = request.args.get("title")
-        if title:
-            query = query.filter(Task.title.contains(title))
+        # ----- LLAMADA AL SERVICIO -----
+        paginated_tasks = get_tasks_service(done, title, sort, page, per_page)
 
-        #Ordenación
-        sort = request.args.get("sort")
-
-        if sort:
-            if sort.startswith("-"):
-                field = sort[1:]
-                if field == "title":
-                    query = query.order_by(Task.title.desc())
-                elif field == "id":
-                    query = query.order_by(Task.id.desc())
-            else:
-                if sort == "title":
-                    query = query.order_by(Task.title.asc())
-                elif sort == "id":
-                    query = query.order_by(Task.id.asc())
-
-        #Paginación
-        page = request.args.get("page", 1, type=int)
-        per_page = request.args.get("per_page", 5, type=int)
-        
-        paginated_tasks = query.paginate(page=page, per_page=per_page, error_out=False)
-
+        # ----- RESPUESTA -----
         return {
             "total": paginated_tasks.total,
             "page": paginated_tasks.pages,
             "current_page": page,
             "tasks": [task.to_dict() for task in paginated_tasks.items]
         }
-
-
-    
-    
+        
     #Ruta GET para obtener una tarea por su ID
     @app.route("/tasks/<int:task_id>")
     def get_task(task_id):
@@ -119,6 +64,16 @@ def register_routes(app):
     @app.route("/tasks", methods=["POST"])
     def create_task():
         data = request.get_json()
+
+        #Validación
+        error = validate_create_task(data)
+        if error:
+            return {"error": error}, 400
+        
+        #Lógica en services.py
+        new_task = create_task_service(data)
+
+        return new_task.to_dict(), 201
 
         #Validación de los datos de entrada para el POST
         error = validate_create_task(data)
@@ -140,44 +95,28 @@ def register_routes(app):
     #Ruta DELETE para eliminar una tarea por su ID
     @app.route("/tasks/<int:task_id>", methods=["DELETE"])
     def delete_task(task_id):
-        #Comprobamos si la tarea existe antes de intentar borrarla
-        task = Task.query.get(task_id)
         
-        if not task:
-            return {"error": "Tarea no encontrada"},404
-        
-        db.session.delete(task)
-        db.session.commit()
+        deleted_task = delete_task_service(task_id)
+
+        if not deleted_task:
+            return {"error": "Tarea no encontrada"}, 404
             
-        return {"message": "Tarea eliminada"}
+        return {"message": "Tarea eliminada correctamente"}, 200
     
     #Ruta PUT para actualizar una tarea por su ID
     @app.route("/tasks/<int:task_id>", methods=["PUT"])
     def update_task(task_id):
-
-        #Comprobamos si la tarea existe antes de intentar actualizarla
-        task = Task.query.get(task_id)
-        if not task:
-            return {"error": "Tarea no encontrada"}, 404
-
-        
         data = request.get_json()
 
-        #Validación de los datos de entrada para el UPDATE
+        #Validación 
         error = validate_update_task(data)
         if error:
             return {"error": error}, 400
-
-        if "done" in data and not isinstance(data["done"], bool):
-            return {"error": "El campo 'done' debe ser un valor booleano"}, 400
-
-        if not data:
-            return {"error": "No JSON provided"},400
         
-        task.title = data.get("title", task.title)
-        task.done = data.get("done", task.done)
-        task.description = data.get("description", task.description)
+        #Lógica
+        updated_task = update_task_service(task_id, data)
 
-        db.session.commit()
+        if not updated_task:
+            return {"error": "Tarea no encontrada"}, 404
 
-        return jsonify(task.to_dict())
+        return updated_task.to_dict(), 200
