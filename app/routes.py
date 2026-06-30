@@ -54,7 +54,7 @@ def register_routes(app):
     @app.route("/tasks/<int:task_id>")
     def get_task(task_id):
 
-        task = Task.query.get(task_id)
+        task = db.session.get(Task, task_id)
 
         if not task:
              return {"error": "Tarea no encontrada"}, 404
@@ -75,22 +75,6 @@ def register_routes(app):
 
         return new_task.to_dict(), 201
 
-        #Validación de los datos de entrada para el POST
-        error = validate_create_task(data)
-        if error:
-            return {"error": error}, 400
-        
-        new_tasks = Task(
-            title=data["title"],
-            done=False,
-            description=data.get("description")
-        )
-
-
-        db.session.add(new_tasks)
-        db.session.commit()
-        
-        return jsonify(new_tasks.to_dict()), 201
     
     #Ruta DELETE para eliminar una tarea por su ID
     @app.route("/tasks/<int:task_id>", methods=["DELETE"])

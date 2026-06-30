@@ -44,7 +44,7 @@ def create_task_service(data):
 
 #Servicio para actualizar una tarea existente
 def update_task_service(task_id, data):
-    task = Task.query.get(task_id)
+    task = db.session.get(Task, task_id)
 
     if not task:
         return None
@@ -64,8 +64,7 @@ def update_task_service(task_id, data):
 
 #Servicio para eliminar una tarea existente
 def delete_task_service(task_id):
-    task = Task.query.get(task_id)
-
+    task = db.session.get(Task, task_id)
     if not task:
         return None
     

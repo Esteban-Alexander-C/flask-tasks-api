@@ -32,7 +32,14 @@ def validate_update_task(data):
 
     return None
 
-def validate_delete_task(task_id):
-    if not isinstance(task_id, int):
+def validate_delete_task(data):
+    if not data:
+        return "No se han enviado datos"
+    
+    if 'id' not in data:
+        return "El ID es obligatorio"
+
+    if not isinstance(data['id'], int):
         return "El ID de la tarea debe ser un número entero"
+    
     return None

@@ -1,6 +1,7 @@
 import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS
 
 #Para que no haya errores con la creacion de la BD lo ponemos primero
 db = SQLAlchemy()
@@ -11,6 +12,8 @@ from .routes import register_routes #Le decimos a Flask que las rutas estan en o
 def create_app(): #Creamos una función 
     app = Flask(__name__, instance_relative_config=True)
 
+    CORS(app) 
+    
     #Creamos carpeta instance si no existe
     os.makedirs(app.instance_path, exist_ok=True)
 
