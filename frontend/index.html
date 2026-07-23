@@ -1,17 +1,22 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <link rel="stylesheet" href="style.css">
-    <title>Tasks App</title>
+    <link rel="stylesheet" href="style.css"> <!-- Conecta el CSS -->
+    <title>Tasks App</title> <!-- Título de la pestaña -->
 </head>
 <body>
 
-    <h1>Lista de tareas</h1>
+    <div class="container"> <!-- Contenedor principal (para centrar y dar estilo) -->
+        <h1>📝 Lista de tareas</h1>
 
-    <ul id="task-list"></ul>
+        <div class="form"> <!-- Agrupa input + botón -->
+            <input type="text" id="task-input" placeholder="Nueva tarea">
+            <button onclick="createTask()">Añadir</button>
+        </div>
 
-    <input type="text" id="task-input" placeholder="Nueva tarea">
-    <button onclick="createTask()">Añadir</button>
-    <script src="script.js"></script>
+        <ul id="task-list"></ul>
+    </div>
+
+    <script src="script.js"></script> <!-- Lo conectamos con JavaScript -->
 </body>
 </html>

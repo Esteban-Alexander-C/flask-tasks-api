@@ -1,22 +1,45 @@
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f6f8;
-    text-align: center;
-    margin-top: 50px;
+.container {
+    background: white;
+    width: 400px;
+    margin: auto;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
-ul {
-    list-style: none;
-    padding: 0;
+.form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+input {
+    flex: 1;
+    padding: 8px;
+}
+
+button {
+    border: none;
+    background-color: #4CAF50;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #45a049; /* Color al pasar el ratón */
+}
+
+.done {
+    text-decoration: line-through; /* Tachamos el texto */
+    color: gray;
 }
 
 li {
-    background: white;
-    margin: 10px auto;
-    padding: 10px;
-    width: 300px;
-    border-radius: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    transition: transform 0.1s ease; /*Animación*/
+}
+
+li:hover {
+    transform: scale(1.02); /*Mini zoom*/
 }
